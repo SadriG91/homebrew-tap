@@ -1,0 +1,93 @@
+# Bottle pipeline: builds prebuilt binaries ("bottles") for each supported
+# macOS version, uploads them to a GitHub Release on this tap, and writes the
+# bottle block into the formula — so `brew install` pours in seconds and needs
+# NO Xcode on the user's machine (build deps are skipped when pouring).
+#
+# Triggers on formula changes (e.g. the release pipeline's version bump) and
+# manually via workflow_dispatch. The bottle-block commit itself is pushed
+# with GITHUB_TOKEN, which never triggers workflows — no loops.
+name: bottle
+
+on:
+  workflow_dispatch:
+    inputs:
+      formula:
+        description: "Formula name"
+        required: true
+        default: "fanknob"
+  push:
+    branches: [main]
+    paths: ["Formula/*.rb"]
+
+permissions:
+  contents: write
+
+env:
+  FORMULA: ${{ github.event.inputs.formula || 'fanknob' }}
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-15, macos-26]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wire this checkout up as the tap
+        run: |
+          TAPS="$(brew --repository)/Library/Taps/sadrig91"
+          mkdir -p "$TAPS"
+          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
+
+      - name: Build bottle
+        run: |
+          VERSION=$(brew info --json=v2 "sadrig91/tap/$FORMULA" | jq -r '.formulae[0].versions.stable')
+          brew install --build-bottle "sadrig91/tap/$FORMULA"
+          brew bottle --json --no-rebuild \
+            --root-url "https://github.com/SadriG91/homebrew-tap/releases/download/$FORMULA-$VERSION" \
+            "sadrig91/tap/$FORMULA"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bottle-${{ matrix.os }}
+          path: |
+            *.bottle.tar.gz
+            *.bottle*.json
+
+  publish:
+    needs: build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+
+      - name: Merge bottle blocks into the formula
+        run: |
+          TAPS="$(brew --repository)/Library/Taps/sadrig91"
+          mkdir -p "$TAPS"
+          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
+          brew bottle --merge --write --no-commit ./*.bottle*.json
+
+      - name: Upload bottles to a tap release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          JSON=$(ls ./*.bottle*.json | head -1)
+          NAME=$(jq -r 'to_entries[0].value.formula.name' "$JSON")
+          VERSION=$(jq -r 'to_entries[0].value.formula.pkg_version' "$JSON")
+          TAG="$NAME-$VERSION"
+          gh release create "$TAG" --title "$TAG bottles" \
+            --notes "Prebuilt bottles for \`brew install SadriG91/tap/$NAME\`" || true
+          gh release upload "$TAG" --clobber ./*.bottle.tar.gz
+
+      - name: Commit the bottle block
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula
+          git commit -m "[bottle] ${FORMULA}: update bottle block" || echo "no formula changes"
+          git push
