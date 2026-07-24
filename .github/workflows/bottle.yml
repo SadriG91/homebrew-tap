@@ -1,11 +1,13 @@
-# Bottle pipeline: builds prebuilt binaries ("bottles") for each supported
-# macOS version, uploads them to a GitHub Release on this tap, and writes the
-# bottle block into the formula — so `brew install` pours in seconds and needs
-# NO Xcode on the user's machine (build deps are skipped when pouring).
+# Bottle pipeline: builds a prebuilt binary ("bottle") once on macos-15, marks
+# it with Homebrew's `all:` tag (our binaries target macOS 15+ and are
+# forward-compatible, arm64-only enforced by the formula), uploads it to a
+# GitHub Release on this tap, and writes the bottle block into the formula.
+# Result: `brew install` pours in seconds and needs NO Xcode on the user's
+# machine — build dependencies are skipped when pouring.
 #
 # Triggers on formula changes (e.g. the release pipeline's version bump) and
-# manually via workflow_dispatch. The bottle-block commit itself is pushed
-# with GITHUB_TOKEN, which never triggers workflows — no loops.
+# manually via workflow_dispatch. The bottle-block commit is pushed with
+# GITHUB_TOKEN, which never triggers workflows — no loops.
 name: bottle
 
 on:
@@ -26,11 +28,8 @@ env:
   FORMULA: ${{ github.event.inputs.formula || 'fanknob' }}
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [macos-15, macos-26]
-    runs-on: ${{ matrix.os }}
+  bottle:
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
 
@@ -40,48 +39,35 @@ jobs:
           mkdir -p "$TAPS"
           ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
 
-      - name: Build bottle
+      - name: Build the bottle
         run: |
           VERSION=$(brew info --json=v2 "sadrig91/tap/$FORMULA" | jq -r '.formulae[0].versions.stable')
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           brew install --build-bottle "sadrig91/tap/$FORMULA"
           brew bottle --json --no-rebuild \
             --root-url "https://github.com/SadriG91/homebrew-tap/releases/download/$FORMULA-$VERSION" \
             "sadrig91/tap/$FORMULA"
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: bottle-${{ matrix.os }}
-          path: |
-            *.bottle.tar.gz
-            *.bottle*.json
-
-  publish:
-    needs: build
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-
-      - name: Merge bottle blocks into the formula
+      - name: Write bottle block, retag as all
         run: |
-          TAPS="$(brew --repository)/Library/Taps/sadrig91"
-          mkdir -p "$TAPS"
-          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
           brew bottle --merge --write --no-commit ./*.bottle*.json
+          # One bottle serves every macOS version >= our deployment target:
+          # rewrite the OS-specific tag to Homebrew's catch-all tag, and give
+          # the file the matching name brew will request.
+          sed -i '' -E "s/(sha256[^\"]*)arm64_[a-z_]+:/\1all:/" "Formula/$FORMULA.rb"
+          for f in ./*.bottle.tar.gz; do
+            mv "$f" "$(echo "$f" | sed -E 's/arm64_[a-z_]+\.bottle/all.bottle/')"
+          done
+          echo "--- bottle block now:"
+          grep -A4 "bottle do" "Formula/$FORMULA.rb"
 
-      - name: Upload bottles to a tap release
+      - name: Upload bottle to a tap release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          JSON=$(ls ./*.bottle*.json | head -1)
-          NAME=$(jq -r 'to_entries[0].value.formula.name' "$JSON")
-          VERSION=$(jq -r 'to_entries[0].value.formula.pkg_version' "$JSON")
-          TAG="$NAME-$VERSION"
+          TAG="$FORMULA-$VERSION"
           gh release create "$TAG" --title "$TAG bottles" \
-            --notes "Prebuilt bottles for \`brew install SadriG91/tap/$NAME\`" || true
+            --notes "Prebuilt bottle for \`brew install SadriG91/tap/$FORMULA\` (no Xcode needed)" || true
           gh release upload "$TAG" --clobber ./*.bottle.tar.gz
 
       - name: Commit the bottle block
@@ -89,5 +75,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Formula
-          git commit -m "[bottle] ${FORMULA}: update bottle block" || echo "no formula changes"
+          git commit -m "[bottle] ${FORMULA} ${VERSION}: all-tag bottle" || echo "no formula changes"
           git push
