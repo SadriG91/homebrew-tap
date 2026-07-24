@@ -54,10 +54,12 @@ jobs:
           brew bottle --merge --write --no-commit ./*.bottle*.json
           # One bottle serves every macOS version >= our deployment target:
           # rewrite the OS-specific tag to Homebrew's catch-all tag, and give
-          # the file the matching name brew will request.
+          # the file the exact name brew requests at fetch time — note brew
+          # WRITES "name--version" (double dash) locally but FETCHES
+          # "name-version" (single dash) from a root_url.
           sed -i '' -E "s/(sha256[^\"]*)arm64_[a-z_]+:/\1all:/" "Formula/$FORMULA.rb"
           for f in ./*.bottle.tar.gz; do
-            mv "$f" "$(echo "$f" | sed -E 's/arm64_[a-z_]+\.bottle/all.bottle/')"
+            mv "$f" "$(echo "$f" | sed -E -e 's/--/-/' -e 's/arm64_[a-z_]+\.bottle/all.bottle/')"
           done
           echo "--- bottle block now:"
           grep -A4 "bottle do" "Formula/$FORMULA.rb"
