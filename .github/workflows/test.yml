@@ -19,9 +19,10 @@ env:
 
 jobs:
   test:
-    runs-on: macos-15
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        os: [macos-15, macos-26]   # validate source builds on both SDKs
         formula: [fanknob]
     steps:
       - uses: actions/checkout@v4

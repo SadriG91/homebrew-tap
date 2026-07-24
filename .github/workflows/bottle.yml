@@ -30,7 +30,10 @@ env:
 
 jobs:
   bottle:
-    runs-on: macos-15
+    # Build on the NEWEST macOS: apps linked against an older SDK get the
+    # legacy compatibility appearance on newer systems. The deployment target
+    # stays macOS 15, so the single all-tag bottle still runs there.
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
