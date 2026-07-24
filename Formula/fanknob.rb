@@ -6,6 +6,11 @@ class Fanknob < Formula
   license "MIT"
   head "https://github.com/SadriG91/fanknob.git", branch: "main"
 
+  bottle do
+    root_url "https://github.com/SadriG91/homebrew-tap/releases/download/fanknob-1.0.0"
+    sha256 cellar: :any_skip_relocation, all: "6cdf67ece095a4162d40bb4720b7b945f42f9a8a234064517b01c685e63d996b"
+  end
+
   depends_on :macos
   depends_on arch: :arm64
   depends_on xcode: ["16.0", :build]
