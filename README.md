@@ -30,5 +30,6 @@ brew update && brew upgrade fanknob
 sudo brew services restart fanknob
 ```
 
-Formulas build from source on your machine, so no code signing or Gatekeeper
-approval is involved.
+Installs pour a prebuilt bottle (no Xcode needed); if no bottle matches your
+system, Homebrew builds from source instead (requires Xcode 16+). No code
+signing or Gatekeeper approval is involved either way.
