@@ -6,7 +6,13 @@ name: test
 on:
   push:
     branches: [main]
+    paths:
+      - "Formula/**"
+      - ".github/workflows/test.yml"
   pull_request:
+    paths:
+      - "Formula/**"
+      - ".github/workflows/test.yml"
 
 env:
   HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
