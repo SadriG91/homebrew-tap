@@ -25,6 +25,7 @@ permissions:
   contents: write
 
 env:
+  HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
   FORMULA: ${{ github.event.inputs.formula || 'fanknob' }}
 
 jobs:
