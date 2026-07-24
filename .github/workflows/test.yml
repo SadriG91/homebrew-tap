@@ -1,5 +1,6 @@
-# Tap CI: audit the formula, build it from source, and run its test block on
-# every push/PR — so a bad formula bump can't reach users.
+# Tap CI: audit, build from source, and test every formula in the tap on each
+# push/PR — so a bad formula bump can't reach users. Add new formulas to the
+# matrix as the tap grows.
 name: test
 
 on:
@@ -10,6 +11,9 @@ on:
 jobs:
   test:
     runs-on: macos-15
+    strategy:
+      matrix:
+        formula: [fanknob]
     steps:
       - uses: actions/checkout@v4
 
@@ -17,13 +21,13 @@ jobs:
         run: |
           TAPS="$(brew --repository)/Library/Taps/sadrig91"
           mkdir -p "$TAPS"
-          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-fanknob"
+          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
 
       - name: Audit formula
-        run: brew audit --strict sadrig91/fanknob/fanknob
+        run: brew audit --strict sadrig91/tap/${{ matrix.formula }}
 
       - name: Build from source
-        run: brew install --build-from-source sadrig91/fanknob/fanknob
+        run: brew install --build-from-source sadrig91/tap/${{ matrix.formula }}
 
       - name: Run formula test
-        run: brew test sadrig91/fanknob/fanknob
+        run: brew test sadrig91/tap/${{ matrix.formula }}
