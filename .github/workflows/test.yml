@@ -1,0 +1,29 @@
+# Tap CI: audit the formula, build it from source, and run its test block on
+# every push/PR — so a bad formula bump can't reach users.
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wire this checkout up as the tap
+        run: |
+          TAPS="$(brew --repository)/Library/Taps/sadrig91"
+          mkdir -p "$TAPS"
+          ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-fanknob"
+
+      - name: Audit formula
+        run: brew audit --strict sadrig91/fanknob/fanknob
+
+      - name: Build from source
+        run: brew install --build-from-source sadrig91/fanknob/fanknob
+
+      - name: Run formula test
+        run: brew test sadrig91/fanknob/fanknob
