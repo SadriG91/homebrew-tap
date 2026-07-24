@@ -31,5 +31,4 @@ sudo brew services restart fanknob
 ```
 
 Installs pour a prebuilt bottle (no Xcode needed); if no bottle matches your
-system, Homebrew builds from source instead (requires Xcode 16+). No code
-signing or Gatekeeper approval is involved either way.
+system, Homebrew builds from source instead (requires Xcode 16+).
