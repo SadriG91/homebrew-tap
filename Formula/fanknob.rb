@@ -1,13 +1,13 @@
 class Fanknob < Formula
   desc "Knob-style fan control and temperature monitoring for Apple Silicon"
   homepage "https://github.com/SadriG91/fanknob"
-  url "https://github.com/SadriG91/fanknob/archive/refs/tags/v1.3.0.tar.gz"
-  sha256 "db37ceaa489cab435241323b2c96eb9dd90239d53e4c2e88ef3ae3c36ec14c00"
+  url "https://github.com/SadriG91/fanknob/archive/refs/tags/v1.3.1.tar.gz"
+  sha256 "dcd08fa297237bddef5d1b81d1867497e26e8d6c7435d29168e6a2cf7b60710b"
   license "MIT"
   head "https://github.com/SadriG91/fanknob.git", branch: "main"
 
   bottle do
-    root_url "https://github.com/SadriG91/homebrew-tap/releases/download/fanknob-1.3.0"
+    root_url "https://github.com/SadriG91/fanknob/archive/refs/tags/v1.3.1.tar.gz"
     sha256 cellar: :any_skip_relocation, all: "e9a6869861b26b92a0519454ce444f85fa0c2e0715b4cc5149f6ecca338ff2ca"
   end
 
