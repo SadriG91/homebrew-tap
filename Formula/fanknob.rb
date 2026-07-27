@@ -7,8 +7,8 @@ class Fanknob < Formula
   head "https://github.com/SadriG91/fanknob.git", branch: "main"
 
   bottle do
-    root_url "https://github.com/SadriG91/fanknob/archive/refs/tags/v1.2.0.tar.gz"
-    sha256 cellar: :any_skip_relocation, all: "22217e7780439fa88befb12e8515386486594faf7ef76338d7b9a4d43030ed38"
+    root_url "https://github.com/SadriG91/homebrew-tap/releases/download/fanknob-1.2.0"
+    sha256 cellar: :any_skip_relocation, all: "92c88351050fe4927b9cdd23ba27f4172fd106f4f0ea59262efc46c3c02e4336"
   end
 
   depends_on :macos
