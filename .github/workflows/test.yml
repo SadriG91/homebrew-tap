@@ -1,29 +1,29 @@
-# Tap CI: audit, build from source, and test every formula in the tap on each
-# push/PR — so a bad formula bump can't reach users. Add new formulas to the
-# matrix as the tap grows.
+# Tap CI: lint every cask on each push/PR, so a bad bump can't reach users.
+#
+# The audit is deliberately offline. `--online` would fetch the release asset
+# and verify its checksum, but the release workflow bumps `version` and `sha256`
+# together from the artifact it just published, and a freshly-authored cask
+# points at a release that doesn't exist yet — so an online audit fails for
+# reasons that have nothing to do with the cask being wrong.
 name: test
 
 on:
   push:
     branches: [main]
     paths:
-      - "Formula/**"
+      - "Casks/**"
       - ".github/workflows/test.yml"
   pull_request:
     paths:
-      - "Formula/**"
+      - "Casks/**"
       - ".github/workflows/test.yml"
 
 env:
   HOMEBREW_NO_REQUIRE_TAP_TRUST: "1"
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-15, macos-26]   # validate source builds on both SDKs
-        formula: [fanknob]
+  audit:
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
 
@@ -33,11 +33,8 @@ jobs:
           mkdir -p "$TAPS"
           ln -s "$GITHUB_WORKSPACE" "$TAPS/homebrew-tap"
 
-      - name: Audit formula
-        run: brew audit --strict sadrig91/tap/${{ matrix.formula }}
+      - name: Style
+        run: brew style sadrig91/tap
 
-      - name: Build from source
-        run: brew install --build-from-source sadrig91/tap/${{ matrix.formula }}
-
-      - name: Run formula test
-        run: brew test sadrig91/tap/${{ matrix.formula }}
+      - name: Audit
+        run: brew audit --cask --strict sadrig91/tap/fanknob
