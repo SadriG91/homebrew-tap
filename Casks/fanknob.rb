@@ -2,8 +2,7 @@ cask "fanknob" do
   version "1.4.0"
   sha256 "0000000000000000000000000000000000000000000000000000000000000000"
 
-  url "https://github.com/SadriG91/fanknob/releases/download/v#{version}/Fanknob-#{version}.pkg",
-      verified: "github.com/SadriG91/fanknob/"
+  url "https://github.com/SadriG91/fanknob/releases/download/v#{version}/Fanknob-#{version}.pkg"
   name "Fanknob"
   desc "Knob-style fan control and temperature monitoring for Apple Silicon"
   homepage "https://github.com/SadriG91/fanknob"
