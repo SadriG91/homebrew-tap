@@ -1,6 +1,6 @@
 cask "fanknob" do
-  version "1.4.1"
-  sha256 "d01d1f258ff8c96a7cda2e2cc0a26ac6e068e98a85a6d6de6f3c8714b0fd2248"
+  version "1.4.2"
+  sha256 "c561a7c50d8b4d2bd2966050f57deff4c560fdb85e4f92750a2df5519213924b"
 
   url "https://github.com/SadriG91/fanknob/releases/download/v#{version}/Fanknob-#{version}.pkg"
   name "Fanknob"
