@@ -31,16 +31,17 @@ cask "orbit" do
   livecheck do
     skip "Auto-generated on release."
   end
+
   depends_on formula: [
-      "tmux",
-    ]
+    "tmux",
+  ]
 
   binary "orbit"
 
   postflight do
     if OS.mac?
       system_command "/usr/bin/xattr",
-                     args: ["-dr", "com.apple.quarantine", "#{staged_path}/orbit"],
+                     args:         ["-dr", "com.apple.quarantine", "#{staged_path}/orbit"],
                      must_succeed: false
     end
   end
