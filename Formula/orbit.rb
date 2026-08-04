@@ -1,8 +1,8 @@
 class Orbit < Formula
   desc "Dashboard for the Claude Code, Codex and Copilot CLI sessions on your machine"
   homepage "https://github.com/SadriG91/orbit"
-  url "https://github.com/SadriG91/orbit/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "65a2b0279ca878f26d5213ead44ac952e88ff8459722f9d3c07e38a7447bcbba"
+  url "https://github.com/SadriG91/orbit/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "da6b721b56768315cdbe4db2a36fa4ceeaefa40e7108cc093e8299e3af705b33"
   license "MIT"
   head "https://github.com/SadriG91/orbit.git", branch: "main"
 
@@ -15,7 +15,7 @@ class Orbit < Formula
 
   def install
     ldflags = "-s -w -X main.version=#{version}"
-    system "go", "build", *std_go_args(ldflags: ldflags)
+    system "go", "build", *std_go_args(ldflags: ldflags), "./cmd/orbit"
   end
 
   def caveats
