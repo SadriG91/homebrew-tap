@@ -3,24 +3,23 @@ cask "orbit" do
   version "0.1.2"
 
   on_macos do
-    on_intel do
-      sha256 "eb30b177344c554ab64ed32335751b9d06f5677cec246c27e94529a64665ffeb"
-      url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_darwin_amd64.tar.gz"
-    end
     on_arm do
       sha256 "94a7c5b9d0761c43f380cac8977304102c734f357490f959e2e0b012b13f32d5"
       url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_darwin_arm64.tar.gz"
     end
-  end
-
-  on_linux do
     on_intel do
-      sha256 "14321dce375bf4ea2e2167bf0c61acd83340e0924e33972df63f878f264d45be"
-      url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_linux_amd64.tar.gz"
+      sha256 "eb30b177344c554ab64ed32335751b9d06f5677cec246c27e94529a64665ffeb"
+      url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_darwin_amd64.tar.gz"
     end
+  end
+  on_linux do
     on_arm do
       sha256 "0a2d4e64a13f681e9944a32ade0d8b47068df1d64c6e93ea4660b5b7668c11eb"
       url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_linux_arm64.tar.gz"
+    end
+    on_intel do
+      sha256 "14321dce375bf4ea2e2167bf0c61acd83340e0924e33972df63f878f264d45be"
+      url "https://github.com/SadriG91/orbit/releases/download/v#{version}/orbit_#{version}_linux_amd64.tar.gz"
     end
   end
 
@@ -31,16 +30,17 @@ cask "orbit" do
   livecheck do
     skip "Auto-generated on release."
   end
+
   depends_on formula: [
-      "tmux",
-    ]
+    "tmux",
+  ]
 
   binary "orbit"
 
   postflight do
     if OS.mac?
       system_command "/usr/bin/xattr",
-                     args: ["-dr", "com.apple.quarantine", "#{staged_path}/orbit"],
+                     args:         ["-dr", "com.apple.quarantine", "#{staged_path}/orbit"],
                      must_succeed: false
     end
   end
